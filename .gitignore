@@ -1,0 +1,7 @@
+.idea
+externaldata/__pycache__
+data/*
+!data/.gitkeep
+logs/*
+!logs/.gitkeep
+creds.json
