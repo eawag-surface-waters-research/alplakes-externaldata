@@ -9,6 +9,8 @@ class logger(object):
         self.name = name + datetime.now().strftime("_%Y%m%d_%H%M%S") + ".txt"
         self.path = os.path.join(path, self.name)
         self.stage = 1
+        if not os.path.exists(path):
+            os.makedirs(path)
 
     def info(self, string, indent=0):
         logging.info(string)
