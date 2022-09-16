@@ -1,7 +1,33 @@
 import os
+import shutil
+import xarray
+import zipfile
 import logging
 import traceback
 from datetime import datetime, timedelta
+
+
+def unzip_combine(path):
+    if ".zip" in path:
+        temp_folder = path.replace(".zip", "")
+        if os.path.exists(temp_folder):
+            shutil.rmtree(temp_folder)
+        os.makedirs(temp_folder)
+        try:
+            with zipfile.ZipFile(path, 'r') as zip_ref:
+                zip_ref.extractall(temp_folder)
+            ds = xarray.open_mfdataset(temp_folder+'/*.nc', combine='by_coords')
+            ds.to_netcdf(path.replace(".zip", ".nc"))
+            ds.close()
+            shutil.rmtree(temp_folder)
+            os.unlink(path)
+        except:
+            shutil.rmtree(temp_folder)
+            if os.path.exists(path.replace(".zip", ".nc")):
+                os.unlink(path.replace(".zip", ".nc"))
+            raise ValueError("Failed to unzip and combine {}".format(path))
+    else:
+        raise ValueError("Path is not a zip file: {}".format(path))
 
 
 class logger(object):
