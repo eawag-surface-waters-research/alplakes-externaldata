@@ -29,7 +29,9 @@ def cosmo(data_folder, ftp_password, ftp_host="sftp.eawag.ch", ftp_port=22, ftp_
         os.makedirs(parent)
 
     log.info("Connecting to {}".format(ftp_host))
-    conn = pysftp.Connection(host=ftp_host, port=ftp_port, username=ftp_user, password=ftp_password)
+    cnopts = pysftp.CnOpts()
+    cnopts.hostkeys = None
+    conn = pysftp.Connection(host=ftp_host, port=ftp_port, username=ftp_user, password=ftp_password, cnopts=cnopts)
     log.info("Successfully connected to {}".format(ftp_host), indent=1)
 
     for file in files:
