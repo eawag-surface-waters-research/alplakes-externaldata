@@ -1,10 +1,24 @@
 import os
+import sys
+import math
 import shutil
 import xarray
 import zipfile
 import logging
 import traceback
 from datetime import datetime, timedelta
+
+
+def progressbar(x, y):
+    ''' progressbar for the pysftp
+    '''
+    bar_len = 60
+    filled_len = math.ceil(bar_len * x / float(y))
+    percents = math.ceil(100.0 * x / float(y))
+    bar = '=' * filled_len + '-' * (bar_len - filled_len)
+    filesize = f'{math.ceil(y/1024):,} KB' if y > 1024 else f'{y} byte'
+    sys.stdout.write(f'[{bar}] {percents}% {filesize}\r')
+    sys.stdout.flush()
 
 
 def unzip_combine(path):

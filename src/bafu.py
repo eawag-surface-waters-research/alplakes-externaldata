@@ -1,6 +1,6 @@
 import os
 import pysftp
-from .functions import logger
+from functions import logger
 
 
 def hydrodata(data_folder, ssh_key, ftp_host="ftp.hydrodata.ch", ftp_user="eawag"):

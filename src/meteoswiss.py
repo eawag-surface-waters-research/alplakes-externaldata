@@ -1,7 +1,7 @@
 import os
 import pysftp
 import fnmatch
-from .functions import logger, unzip_combine
+from functions import logger, unzip_combine, progressbar
 
 
 def cosmo(data_folder, ftp_password, ftp_host="sftp.eawag.ch", ftp_port=22, ftp_user="cosmo"):
@@ -50,7 +50,7 @@ def cosmo(data_folder, ftp_password, ftp_host="sftp.eawag.ch", ftp_port=22, ftp_
             else:
                 log.info("Downloading file {}.".format(server_file), indent=2)
                 try:
-                    conn.get(os.path.join(file["parent"], server_file), os.path.join(parent, file["folder"], server_file))
+                    conn.get(os.path.join(file["parent"], server_file), os.path.join(parent, file["folder"], server_file), callback=lambda x, y: progressbar(x, y))
                     if ".zip" in server_file:
                         unzip_combine(os.path.join(parent, file["folder"], server_file))
                 except:
