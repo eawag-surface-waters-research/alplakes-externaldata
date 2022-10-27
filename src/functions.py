@@ -9,6 +9,14 @@ import traceback
 from datetime import datetime, timedelta
 
 
+def list_nested_dir(root):
+    f = []
+    for path, subdirs, files in os.walk(root):
+        for name in files:
+            f.append(os.path.join(path, name))
+    return f
+
+
 def progressbar(x, y):
     ''' progressbar for the pysftp
     '''
