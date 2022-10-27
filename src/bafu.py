@@ -100,6 +100,8 @@ def hydrodata(data_folder, ssh_key, ftp_host="ftp.hydrodata.ch", ftp_user="eawag
         log.info("Processing data from {}".format(folder["name"]), indent=1)
         if folder["operation"] == "overwrite":
             log.info("Overwriting {} with new data.".format(os.path.join(parent, folder["name"])), indent=2)
+            if os.path.exists(os.path.join(parent, folder["name"])):
+                shutil.rmtree(os.path.join(parent, folder["name"]))
             shutil.move(os.path.join(temp, folder["name"]), os.path.join(parent, folder["name"]))
         elif folder["operation"] == "merge":
             files = list_nested_dir(os.path.join(temp, folder["name"]))
