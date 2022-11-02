@@ -95,7 +95,7 @@ def hydrodata(data_folder, ssh_key, ftp_host="ftp.hydrodata.ch", ftp_user="eawag
     log.info("Closing the connection to {}".format(ftp_host))
 
     log.info("Processing downloaded data.")
-
+    failed = []
     for folder in folders:
         log.info("Processing data from {}".format(folder["name"]), indent=1)
         if folder["operation"] == "overwrite":
@@ -107,6 +107,14 @@ def hydrodata(data_folder, ssh_key, ftp_host="ftp.hydrodata.ch", ftp_user="eawag
             files = list_nested_dir(os.path.join(temp, folder["name"]))
             log.info("Merging {} new files from {}.".format(len(files), folder["name"]), indent=2)
             for file in files:
-                folder["process"](file, os.path.join(parent, folder["name"]))
+                try:
+                    folder["process"](file, os.path.join(parent, folder["name"]))
+                except Exception as e:
+                    failed.append(file)
+                    log.error("Failed to process file: {}".format(file), e, indent=3)
+
     log.info("Removing temporary data.")
     shutil.rmtree(temp)
+
+    if len(failed) > 0:
+        raise ValueError("Failed to merge: {}".format(", ".join(failed)))

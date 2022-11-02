@@ -69,4 +69,4 @@ def cosmo(data_folder, ftp_password, ftp_host="sftp.eawag.ch", ftp_port=22, ftp_
     conn.close()
 
     if len(failed) > 0:
-        raise ValueError("Failed to download: {}".format(failed))
+        raise ValueError("Failed to download: {}".format(", ".join(failed)))

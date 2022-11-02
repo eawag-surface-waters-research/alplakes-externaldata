@@ -73,23 +73,6 @@ class logger(object):
         with open(self.path, "a") as file:
             file.write(out + "\n")
 
-    def begin_stage(self, string):
-        logging.info(string)
-        self.newline()
-        out = datetime.now().strftime("%H:%M:%S.%f") + "   Stage {}: ".format(self.stage) + string
-        self.stage = self.stage + 1
-        print('\033[95m' + out + '\033[0m')
-        with open(self.path, "a") as file:
-            file.write(out + "\n")
-        return self.stage - 1
-
-    def end_stage(self, stage):
-        logging.info(string)
-        out = datetime.now().strftime("%H:%M:%S.%f") + "   Stage {}: Completed.".format(stage)
-        print('\033[92m' + out + '\033[0m')
-        with open(self.path, "a") as file:
-            file.write(out + "\n")
-
     def warning(self, string, indent=0):
         logging.warning(string)
         out = datetime.now().strftime("%H:%M:%S.%f") + (" " * 3 * (indent + 1)) + "WARNING: " + string
@@ -97,10 +80,10 @@ class logger(object):
         with open(self.path, "a") as file:
             file.write(out + "\n")
 
-    def error(self, stage):
-        logging.error("ERROR: Script failed on stage {}".format(stage))
-        out = datetime.now().strftime("%H:%M:%S.%f") + "   ERROR: Script failed on stage {}".format(stage)
+    def error(self, string, error, indent=0):
+        out = datetime.now().strftime("%H:%M:%S.%f") + (" " * 3 * (indent + 1)) + "ERROR: " + string
         print('\033[91m' + out + '\033[0m')
+        print(error)
         with open(self.path, "a") as file:
             file.write(out + "\n")
             file.write("\n")
