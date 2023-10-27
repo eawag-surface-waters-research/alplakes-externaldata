@@ -146,7 +146,7 @@ def meteodata(data_folder, ftp_password, folder="data", ftp_host="sftp.eawag.ch"
             f.write(server_files[-1].split(".")[1][:8])
 
     else:
-        log.info("No new files to process.")
+        raise ValueError("No new files available to process.")
 
     log.info("Closing connection to {}".format(ftp_host))
     conn.close()
