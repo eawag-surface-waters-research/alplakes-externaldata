@@ -100,9 +100,12 @@ def meteodata(data_folder, ftp_password, folder="data", ftp_host="sftp.eawag.ch"
     last_update_file = os.path.join(parent, "last_update.txt")
 
     if os.path.exists(last_update_file):
-        with open(last_update_file, "r") as f:
-            last_update = int(f.readline())
-        server_files = [f for f in server_files if int(f.split(".")[1][:8]) > last_update]
+        try:
+            with open(last_update_file, "r") as f:
+                last_update = int(f.readline())
+            server_files = [f for f in server_files if int(f.split(".")[1][:8]) > last_update]
+        except Exception as e:
+            log.error("Failed to read last_update.txt, processing all files.", e)
 
     if len(server_files) > 0:
         log.info("Processing {} files.".format(len(server_files)))
