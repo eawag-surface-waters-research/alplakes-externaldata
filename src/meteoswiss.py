@@ -104,43 +104,46 @@ def meteodata(data_folder, ftp_password, folder="data", ftp_host="sftp.eawag.ch"
             last_update = int(f.readline())
         server_files = [f for f in server_files if int(f.split(".")[1][:8]) > last_update]
 
-    log.info("Processing {} files.".format(len(server_files)))
+    if len(server_files) > 0:
+        log.info("Processing {} files.".format(len(server_files)))
+        for server_file in server_files:
+            log.info("Downloading file {}.".format(server_file), indent=1)
+            temp_file = os.path.join(parent, server_file + ".temp")
+            try:
+                conn.get(os.path.join(folder, server_file), temp_file)
+                df = pd.read_csv(temp_file, sep=";")
+                df["time"] = pd.to_datetime(df['Date'], format='%Y%m%d%H', utc=True)
+                for station in df["Station/Location"].unique():
+                    log.info("Processing station {}.".format(station), indent=2)
+                    if not os.path.exists(os.path.join(parent, station)):
+                        os.makedirs(os.path.join(parent, station))
+                    station_data = df.loc[df['Station/Location'] == station]
+                    for year in range(df['time'].min().year, df['time'].max().year + 1):
+                        station_year_file = os.path.join(parent, station, "VQCA44.{}.csv".format(year))
+                        station_year_data = station_data[station_data['time'].dt.year == year].drop('time', axis=1)
+                        if not os.path.exists(station_year_file):
+                            log.info("Saving file new file {}.".format(station_year_file), indent=3)
+                            station_year_data.to_csv(station_year_file, index=False)
+                        else:
+                            df_existing = pd.read_csv(station_year_file)
+                            combined = pd.concat([df_existing, station_year_data])
+                            combined = combined.drop_duplicates(subset=['Date'])
+                            combined = combined.sort_values(by='Date')
+                            combined.fillna('-', inplace=True)
+                            combined.to_csv(station_year_file, index=False)
+                if os.path.exists(temp_file):
+                    os.unlink(temp_file)
+            except Exception as e:
+                log.error("Failed to download {}.".format(server_file), e)
+                if os.path.exists(temp_file):
+                    os.unlink(temp_file)
+                failed.append(server_file)
 
-    for server_file in server_files:
-        log.info("Downloading file {}.".format(server_file), indent=1)
-        temp_file = os.path.join(parent, server_file + ".temp")
-        try:
-            conn.get(os.path.join(folder, server_file), temp_file)
-            df = pd.read_csv(temp_file, sep=";")
-            df["time"] = pd.to_datetime(df['Date'], format='%Y%m%d%H', utc=True)
-            for station in df["Station/Location"].unique():
-                log.info("Processing station {}.".format(station), indent=2)
-                if not os.path.exists(os.path.join(parent, station)):
-                    os.makedirs(os.path.join(parent, station))
-                station_data = df.loc[df['Station/Location'] == station]
-                for year in range(df['time'].min().year, df['time'].max().year + 1):
-                    station_year_file = os.path.join(parent, station, "VQCA44.{}.csv".format(year))
-                    station_year_data = station_data[station_data['time'].dt.year == year].drop('time', axis=1)
-                    if not os.path.exists(station_year_file):
-                        log.info("Saving file new file {}.".format(station_year_file), indent=3)
-                        station_year_data.to_csv(station_year_file, index=False)
-                    else:
-                        df_existing = pd.read_csv(station_year_file)
-                        combined = pd.concat([df_existing, station_year_data])
-                        combined = combined.drop_duplicates(subset=['Date'])
-                        combined = combined.sort_values(by='Date')
-                        combined.fillna('-', inplace=True)
-                        combined.to_csv(station_year_file, index=False)
-            if os.path.exists(temp_file):
-                os.unlink(temp_file)
-        except:
-            log.error("Failed to download {}.".format(server_file))
-            if os.path.exists(temp_file):
-                os.unlink(temp_file)
-            failed.append(server_file)
+        with open(last_update_file, "w") as f:
+            f.write(server_files[-1].split(".")[1][:8])
 
-    with open(last_update_file, "w") as f:
-        f.write(server_files[-1].split(".")[1][:8])
+    else:
+        log.info("No new files to process.")
 
     log.info("Closing connection to {}".format(ftp_host))
     conn.close()
