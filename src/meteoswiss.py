@@ -118,12 +118,19 @@ def meteodata(data_folder, ftp_password, folder="data", ftp_host="sftp.eawag.ch"
                 if not os.path.exists(os.path.join(parent, station)):
                     os.makedirs(os.path.join(parent, station))
                 station_data = df.loc[df['Station/Location'] == station]
-                for day in pd.date_range(start=df['time'].min(), end=df['time'].max(), freq='D'):
-                    station_day_file = os.path.join(parent, station, "VQCA44.{}.csv".format(day.date().strftime('%Y%m%d')))
-                    station_day_data = station_data[station_data['time'].dt.date == day.date()].drop('time', axis=1)
-                    if not os.path.exists(station_day_file) or len(station_day_data) == 24:
-                        log.info("Saving file {}.".format(station_day_file), indent=3)
-                        station_day_data.to_csv(station_day_file)
+                for year in range(df['time'].min().year, df['time'].max().year + 1):
+                    station_year_file = os.path.join(parent, station, "VQCA44.{}.csv".format(year))
+                    station_year_data = station_data[station_data['time'].dt.year == year].drop('time', axis=1)
+                    if not os.path.exists(station_year_file):
+                        log.info("Saving file new file {}.".format(station_year_file), indent=3)
+                        station_year_data.to_csv(station_year_file, index=False)
+                    else:
+                        df_existing = pd.read_csv(station_year_file)
+                        combined = pd.concat([df_existing, station_year_data])
+                        combined = combined.drop_duplicates(subset=['Date'])
+                        combined = combined.sort_values(by='Date')
+                        combined.fillna('-', inplace=True)
+                        combined.to_csv(station_year_file, index=False)
             if os.path.exists(temp_file):
                 os.unlink(temp_file)
         except:
