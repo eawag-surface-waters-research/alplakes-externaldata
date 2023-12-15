@@ -27,7 +27,7 @@ def delete_files_in_directory(sftp, path, file_types, days):
 
 def is_old_file(file, days):
     file_age_days = (datetime.now() - datetime.fromtimestamp(file.st_mtime)).days
-    return file_age_days > days
+    return file_age_days > int(days)
 
 
 if __name__ == "__main__":
