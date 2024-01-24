@@ -9,21 +9,31 @@ from functions import logger, list_nested_dir
 
 
 def csv_process(path, folder):
-    name = os.path.basename(path)
-    parts = name.split(".")[0].split("_")
-    out = os.path.join(folder, parts[1], parts[2])
-    if not os.path.exists(out):
-        os.makedirs(out)
+    parts = os.path.basename(path).split(".")[0].split("_")
+    out_folder = os.path.join(os.path.dirname(folder), "stations", parts[1], parts[2])
+    os.makedirs(out_folder, exist_ok=True)
+    files = os.listdir(out_folder)
+    files = [os.path.join(out_folder, f) for f in files if f.endswith(".csv")]
+
     df = pd.read_csv(path)
-    df.index = pd.to_datetime(df["Time"])
-    days = df.groupby([df.index.date]).sum(numeric_only=True).index
-    start = "{}T00:00:00+00:00"
-    end = "{}T23:59:00+00:00"
-    for i in range(1, len(days)):
-        df_d = df.loc[(df.index >= pd.Timestamp(start.format(str(days[i]))))
-                      & (df.index < pd.Timestamp(end.format(str(days[i]))))]
-        out_name = "{}_{}.csv".format(name.split(".")[0], str(days[i]))
-        df_d.to_csv(os.path.join(out, out_name), index=False)
+    df['Time'] = pd.to_datetime(df['Time'])
+    df['Time'] = df['Time'].dt.tz_convert('UTC')
+
+    if len(files) > 0:
+        files.sort()
+        df_old = pd.read_csv(files[-1])
+        df_old['Time'] = pd.to_datetime(df_old['Time'])
+        df = pd.concat([df, df_old], ignore_index=True)
+
+    df = df.drop_duplicates(subset='Time', keep='last').reset_index(drop=True)
+    df['Year'] = df['Time'].dt.year
+    df = df.sort_values(by='Time').reset_index(drop=True)
+    dfg = df.groupby('Year')
+    for year, group_df in dfg:
+        file_name = os.path.basename(path).split(".")[0] + "_{}.csv".format(year)
+        output_file_path = os.path.join(out_folder, file_name)
+        group_df = group_df.drop('Year', axis=1)
+        group_df.to_csv(output_file_path, index=False)
 
 
 def totalinflowlakes_process(path, folder):
