@@ -73,6 +73,70 @@ def cosmo(data_folder, ftp_password, ftp_host="sftp.eawag.ch", ftp_port=22, ftp_
         raise ValueError("Failed to download: {}".format(", ".join(failed)))
 
 
+def icon(data_folder, ftp_password, ftp_host="sftp.eawag.ch", ftp_port=22, ftp_user="cosmo", progress=False):
+    """
+    Download ICON data from Eawag sftp server.
+    Available files:
+    - %Y_%m_%D_%H_icon-ch2-eps_eawag_lakes.zip (forecast):  ICON-CH2-EPS 5 day ensemble forecast
+    - %Y_%m_%D_%H_icon-ch1-eps_eawag_lakes.zip (forecast):  ICON-CH1-EPS 33 hour ensemble forecast
+    """
+    files = [{"name": "*_00_icon-ch2-eps_eawag_lakes.zip", "parent": "data/icon-ch2-eps", "folder": "icon-ch2-eps"},
+             {"name": "*_00_icon-ch1-eps_eawag_lakes.zip", "parent": "data/icon-ch1-eps", "folder": "icon-ch1-eps"}]
+
+    failed = []
+
+    log = logger("icon", path=os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir, "logs"))
+    log.initialise("Download ICON data from Eawag sftp server")
+
+    log.info("Ensure data folder exists.")
+    parent = os.path.join(data_folder, "meteoswiss/icon")
+    if not os.path.exists(parent):
+        os.makedirs(parent)
+
+    log.info("Connecting to {}".format(ftp_host))
+    cnopts = pysftp.CnOpts()
+    cnopts.hostkeys = None
+    conn = pysftp.Connection(host=ftp_host, port=ftp_port, username=ftp_user, password=ftp_password, cnopts=cnopts)
+    log.info("Successfully connected to {}".format(ftp_host), indent=1)
+
+    for file in files:
+        log.info("Downloading {} files".format(file["folder"]))
+        folder = os.path.join(data_folder, "meteoswiss/icon", file["folder"])
+        if not os.path.exists(folder):
+            os.makedirs(folder)
+        server_files = [f for f in conn.listdir(file["parent"]) if fnmatch.fnmatch(f, file["name"])]
+        log.info("Found {} files matching file name pattern {}".format(len(server_files), file["name"]), indent=1)
+        for server_file in server_files:
+            if os.path.isfile(os.path.join(parent, file["folder"], server_file.replace(".zip", ".nc"))):
+                log.info("File {} already downloaded, skipping.".format(server_file), indent=2)
+            elif os.path.isfile(os.path.join(parent, file["folder"], server_file.replace(".nc", ".zip"))):
+                log.info("File {} already downloaded, unzipping.".format(server_file), indent=2)
+                unzip_combine(os.path.join(parent, file["folder"], server_file))
+            else:
+                log.info("Downloading file {}.".format(server_file), indent=2)
+                try:
+                    if progress:
+                        conn.get(os.path.join(file["parent"], server_file),
+                                 os.path.join(parent, file["folder"], server_file),
+                                 callback=lambda x, y: progressbar(x, y))
+                    else:
+                        conn.get(os.path.join(file["parent"], server_file),
+                                 os.path.join(parent, file["folder"], server_file))
+                    if ".zip" in server_file:
+                        unzip_combine(os.path.join(parent, file["folder"], server_file))
+                except:
+                    log.error("Failed to download {}.".format(server_file))
+                    if os.path.exists(os.path.join(parent, file["folder"], server_file)):
+                        os.unlink(os.path.join(parent, file["folder"], server_file))
+                    failed.append(server_file)
+
+    log.info("Closing connection to {}".format(ftp_host))
+    conn.close()
+
+    if len(failed) > 0:
+        raise ValueError("Failed to download: {}".format(", ".join(failed)))
+
+
 def meteodata(data_folder, ftp_password, folder="data", ftp_host="sftp.eawag.ch", ftp_port=22, ftp_user="simstrat"):
     """
     Download Meteodata from Eawag sftp server.
