@@ -6,10 +6,10 @@ from bafu import hydrodata
 
 
 def main(params):
-    setups = ["meteoswiss_cosmo", "bafu_hydrodata"]
+    setups = ["meteoswiss_cosmo", "bafu_hydrodata", "meteoswiss_meteodata", "meteoswiss_icon"]
     if params["source"] == "meteoswiss_cosmo":
         cosmo(params["filesystem"], params["password"])
-    if params["source"] == "meteoswiss_icon":
+    elif params["source"] == "meteoswiss_icon":
         icon(params["filesystem"], params["password"])
     elif params["source"] == "meteoswiss_meteodata":
         meteodata(params["filesystem"], params["password"])
