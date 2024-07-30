@@ -79,9 +79,13 @@ def icon(data_folder, ftp_password, ftp_host="sftp.eawag.ch", ftp_port=22, ftp_u
     Available files:
     - %Y_%m_%D_%H_icon-ch2-eps_eawag_lakes.zip (forecast):  ICON-CH2-EPS 5 day ensemble forecast
     - %Y_%m_%D_%H_icon-ch1-eps_eawag_lakes.zip (forecast):  ICON-CH1-EPS 33 hour ensemble forecast
+    - %Y_%m_%D_%H_kenda-ch1_eawag_lakes.nc (reanalysis):  KENDA-CH1 1 day deterministic (data from previous day from name)
+    - %Y_%m_%D_%H_kenda-ch1_eawag_lake_geneva_ensemble.nc (reanalysis):  KENDA-CH1 1 day ensemble forecast (data from previous day from name)
     """
     files = [{"name": "*_00_icon-ch2-eps_eawag_lakes.zip", "parent": "data/icon-ch2-eps", "folder": "icon-ch2-eps"},
-             {"name": "*_00_icon-ch1-eps_eawag_lakes.zip", "parent": "data/icon-ch1-eps", "folder": "icon-ch1-eps"}]
+             {"name": "*_00_icon-ch1-eps_eawag_lakes.zip", "parent": "data/icon-ch1-eps", "folder": "icon-ch1-eps"},
+             {"name": "*_00_kenda-ch1_eawag_lakes.nc", "parent": "data/kenda-ch1", "folder": "kenda-ch1"},
+             {"name": "*_00_kenda-ch1_eawag_lake_geneva_ensemble.nc", "parent": "data/kenda-ch1", "folder": "kenda-ch1-e"}]
 
     failed = []
 
