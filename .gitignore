@@ -6,3 +6,4 @@ data/*
 logs/*
 !logs/.gitkeep
 creds.json
+filesystem

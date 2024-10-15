@@ -1,4 +1,5 @@
 import os
+import re
 import sys
 import math
 import shutil
@@ -119,3 +120,54 @@ class logger(object):
         print("")
         with open(self.path, "a") as file:
             file.write("\n")
+
+
+def split_string(s):
+    list = []
+    slice_start = 0
+    bracket_count = 0
+    braces_count = 0
+    for i in range(len(s)):
+        if s[i] == "{":
+            braces_count = braces_count + 1
+        elif s[i] == "}":
+            braces_count = braces_count - 1
+        if s[i] == "[":
+            bracket_count = bracket_count + 1
+        elif s[i] == "]":
+            bracket_count = bracket_count - 1
+        elif s[i] == ",":
+            if bracket_count == 0 and braces_count == 0:
+                list.append(s[slice_start:i].strip())
+                slice_start = i+1
+    list.append(s[slice_start:len(s)].strip())
+    return list
+
+
+def parse_dict_string(data):
+    dict = {}
+    data = data[data.find('{'):data.rfind('}') + 1]
+    for pair in split_string(data.strip()[1:-1].strip()):
+        parts = pair.split(":", 1)
+        if len(parts) == 2:
+            key = parts[0]
+            value = parts[1].strip()
+            if value[0] == "{":
+                dict[key] = parse_dict_string(value)
+            elif value[0] == "[":
+                dict[key] = parse_list_string(value)
+            else:
+                dict[key] = value.replace('"', '')
+    return dict
+
+def parse_list_string(data):
+    list = []
+    for value in data.strip()[1:-1].strip().split(","):
+        value = value.strip()
+        if value[0] == "{":
+            list.append(parse_dict_string(value))
+        elif value[0] == "[":
+            list.append(parse_list_string(value))
+        else:
+            list.append(value.replace('"', ''))
+    return list

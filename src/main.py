@@ -3,10 +3,11 @@ import sys
 import argparse
 from meteoswiss import cosmo, icon, meteodata
 from bafu import hydrodata
+from arso import arso_meteodata
 
 
 def main(params):
-    setups = ["meteoswiss_cosmo", "bafu_hydrodata", "meteoswiss_meteodata", "meteoswiss_icon"]
+    setups = ["meteoswiss_cosmo", "bafu_hydrodata", "meteoswiss_meteodata", "meteoswiss_icon", "arso_meteodata"]
     if params["source"] == "meteoswiss_cosmo":
         cosmo(params["filesystem"], params["password"])
     elif params["source"] == "meteoswiss_icon":
@@ -15,6 +16,12 @@ def main(params):
         meteodata(params["filesystem"], params["password"])
     elif params["source"] == "bafu_hydrodata":
         hydrodata(params["filesystem"], params["key"])
+    elif params["source"] == "mistral_meteodata":
+        mistral(params["filesystem"])
+    elif params["source"] == "arso_meteodata":
+        arso_meteodata(params["filesystem"])
+    elif params["source"] == "geosphere_meteostation":
+        hydrodata(params["filesystem"])
     else:
         raise Exception("Currently only the following sources are supported: {}".format(setups))
 
