@@ -22,7 +22,7 @@ def geosphere_meteodata(data_folder):
     log.initialise("Download Meteodata from Geosphere")
 
     log.info("Ensure data folder exists.")
-    parent = os.path.join(data_folder, "arso/meteodata")
+    parent = os.path.join(data_folder, "geosphere/meteodata")
     if not os.path.exists(parent):
         os.makedirs(parent)
 
@@ -41,6 +41,7 @@ def geosphere_meteodata(data_folder):
                 dict[p] = raw_data["features"][0]["properties"]["parameters"][p]["data"]
             df = pd.DataFrame(dict)
             df['time'] = pd.to_datetime(df['time'])
+            df = df.dropna(how='all', subset=df.columns.difference(['time']))
             for year in range(df['time'].min().year, df['time'].max().year + 1):
                 station_year_file = os.path.join(parent, station["id"], "{}.csv".format(year))
                 station_year_data = df[df['time'].dt.year == year]

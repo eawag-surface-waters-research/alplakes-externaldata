@@ -12,7 +12,7 @@ def arso_meteodata(data_folder):
     https://meteo.arso.gov.si/met/en/app/webmet/#webmet==8Sdwx2bhR2cv0WZ0V2bvEGcw9ydlJWblR3LwVnaz9SYtVmYh9iclFGbt9SaulGdugXbsx3cs9mdl5WahxXYyNGapZXZ8tHZv1WYp5mOnMHbvZXZulWYnwCchJXYtVGdlJnOn0UQQdSf;
     """
     stations = [
-        {"id": "2213"}
+        {"id": "2213", "parameters": ["12", "26", "21", "15", "23", "27", "18"]}
     ]
     failed = []
 
@@ -26,11 +26,11 @@ def arso_meteodata(data_folder):
 
     current_date = datetime.now()
     last_update = current_date - timedelta(weeks=2)
-    url = "https://meteo.arso.gov.si/webmet/archive/data.xml?lang=en&vars=12,26,21,15,23,27,18&group=halfhourlyData0&type=halfhourly&id={}&d1={}&d2={}"
+    url = "https://meteo.arso.gov.si/webmet/archive/data.xml?lang=en&vars={}&group=halfhourlyData0&type=halfhourly&id={}&d1={}&d2={}"
 
     for station in stations:
         log.info("Downloading data for station {}".format(station["id"]))
-        u = url.format(station["id"], last_update.strftime("%Y-%m-%d"), current_date.strftime("%Y-%m-%d"))
+        u = url.format(",".join(station["parameters"]), station["id"], last_update.strftime("%Y-%m-%d"), current_date.strftime("%Y-%m-%d"))
         response = requests.get(u)
         if response.status_code == 200:
             raw_data = str(response.content)
