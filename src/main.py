@@ -4,6 +4,7 @@ import argparse
 from meteoswiss import cosmo, icon, meteodata
 from bafu import hydrodata
 from arso import arso_meteodata
+from geosphere import geosphere_meteodata
 
 
 def main(params):
@@ -18,6 +19,8 @@ def main(params):
         hydrodata(params["filesystem"], params["key"])
     elif params["source"] == "arso_meteodata":
         arso_meteodata(params["filesystem"])
+    elif params["source"] == "geosphere_meteodata":
+        geosphere_meteodata(params["filesystem"])
     else:
         raise Exception("Currently only the following sources are supported: {}".format(setups))
 
