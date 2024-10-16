@@ -16,12 +16,8 @@ def main(params):
         meteodata(params["filesystem"], params["password"])
     elif params["source"] == "bafu_hydrodata":
         hydrodata(params["filesystem"], params["key"])
-    elif params["source"] == "mistral_meteodata":
-        mistral(params["filesystem"])
     elif params["source"] == "arso_meteodata":
         arso_meteodata(params["filesystem"])
-    elif params["source"] == "geosphere_meteostation":
-        hydrodata(params["filesystem"])
     else:
         raise Exception("Currently only the following sources are supported: {}".format(setups))
 
