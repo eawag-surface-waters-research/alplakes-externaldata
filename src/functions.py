@@ -171,3 +171,6 @@ def parse_list_string(data):
         else:
             list.append(value.replace('"', ''))
     return list
+
+def merge_dfs(left, right):
+    return pd.merge(left, right, on='time', how='outer')

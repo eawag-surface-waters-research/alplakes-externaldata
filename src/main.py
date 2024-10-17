@@ -5,6 +5,7 @@ from meteoswiss import cosmo, icon, meteodata
 from bafu import hydrodata
 from arso import arso_meteodata
 from geosphere import geosphere_meteodata
+from mistral import mistral_meteodata
 
 
 def main(params):
@@ -21,6 +22,8 @@ def main(params):
         arso_meteodata(params["filesystem"])
     elif params["source"] == "geosphere_meteodata":
         geosphere_meteodata(params["filesystem"])
+    elif params["source"] == "mistral_meteodata":
+        mistral_meteodata(params["filesystem"], params["user"], params["password"])
     else:
         raise Exception("Currently only the following sources are supported: {}".format(setups))
 
@@ -31,7 +34,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--source', '-s', help="Data source [meteoswiss_cosmo, bafu_hydrodata, meteoswiss_meteodata, meteoswiss_icon]", type=str)
     parser.add_argument('--filesystem', '-f', help="Path to local storage filesystem", type=str,)
-    parser.add_argument('--password', '-p', help="FTP password", type=str, default=False)
+    parser.add_argument('--user', '-u', help="Username", type=str, default=False)
+    parser.add_argument('--password', '-p', help="Password", type=str, default=False)
     parser.add_argument('--key', '-k', help="Path to ssh key file", type=str, default=False)
     args = parser.parse_args()
     main(vars(args))
