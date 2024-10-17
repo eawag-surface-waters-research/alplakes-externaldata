@@ -7,6 +7,7 @@ import xarray
 import zipfile
 import logging
 import traceback
+import pandas as pd
 from datetime import datetime, timedelta
 
 

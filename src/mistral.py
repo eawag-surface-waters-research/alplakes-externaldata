@@ -82,9 +82,11 @@ def mistral_meteodata(data_folder, user, password):
                         combined = combined.drop_duplicates(subset=['time'], keep='last')
                         combined = combined.sort_values(by='time')
                         combined.to_csv(station_year_file, index=False)
-            except:
+            except Exception as e:
+                print(e)
                 failed.append(station["id"])
         else:
+            print(response)
             failed.append(station["id"])
     requests.get("https://meteohub.mistralportal.it/auth/logout", headers={
         'accept': 'application/json',
