@@ -33,37 +33,40 @@ def arso_meteodata(data_folder):
         u = url.format(",".join(station["parameters"]), station["id"], last_update.strftime("%Y-%m-%d"), current_date.strftime("%Y-%m-%d"))
         response = requests.get(u)
         if response.status_code == 200:
-            raw_data = str(response.content)
-            data = parse_dict_string(raw_data)
-            keys = data["params"].keys()
-            d = {key: [] for key in keys}
-            d["time"] = []
-            for key in data["points"]["_"+station["id"]].keys():
-                d["time"].append(datetime(1800,1,1) + timedelta(seconds=int(key.replace("_", "")) * 60))
-                for k in keys:
-                    if k in data["points"]["_"+station["id"]][key]:
-                        d[k].append(float(data["points"]["_"+station["id"]][key][k]))
+            try:
+                raw_data = str(response.content)
+                data = parse_dict_string(raw_data)
+                keys = data["params"].keys()
+                d = {key: [] for key in keys}
+                d["time"] = []
+                for key in data["points"]["_"+station["id"]].keys():
+                    d["time"].append(datetime(1800,1,1) + timedelta(seconds=int(key.replace("_", "")) * 60))
+                    for k in keys:
+                        if k in data["points"]["_"+station["id"]][key]:
+                            d[k].append(float(data["points"]["_"+station["id"]][key][k]))
+                        else:
+                            d[k].append(np.nan)
+                df = pd.DataFrame(d)
+                for key in keys:
+                    df = df.rename(columns={key: data["params"][key]["pid"]})
+                cols = ["time"] + sorted([col for col in df.columns if col != "time"])
+                df = df[cols]
+                for year in range(df['time'].min().year, df['time'].max().year + 1):
+                    station_year_file = os.path.join(parent, station["id"], "{}.csv".format(year))
+                    station_year_data = df[df['time'].dt.year == year]
+                    if not os.path.exists(station_year_file):
+                        log.info("Saving file new file {}.".format(station_year_file), indent=1)
+                        os.makedirs(os.path.dirname(station_year_file), exist_ok=True)
+                        station_year_data.to_csv(station_year_file, index=False)
                     else:
-                        d[k].append(np.nan)
-            df = pd.DataFrame(d)
-            for key in keys:
-                df = df.rename(columns={key: data["params"][key]["pid"]})
-            cols = ["time"] + sorted([col for col in df.columns if col != "time"])
-            df = df[cols]
-            for year in range(df['time'].min().year, df['time'].max().year + 1):
-                station_year_file = os.path.join(parent, station["id"], "{}.csv".format(year))
-                station_year_data = df[df['time'].dt.year == year]
-                if not os.path.exists(station_year_file):
-                    log.info("Saving file new file {}.".format(station_year_file), indent=1)
-                    os.makedirs(os.path.dirname(station_year_file), exist_ok=True)
-                    station_year_data.to_csv(station_year_file, index=False)
-                else:
-                    df_existing = pd.read_csv(station_year_file)
-                    df_existing['time'] = pd.to_datetime(df_existing['time'])
-                    combined = pd.concat([df_existing, station_year_data])
-                    combined = combined.drop_duplicates(subset=['time'], keep='last')
-                    combined = combined.sort_values(by='time')
-                    combined.to_csv(station_year_file, index=False)
+                        df_existing = pd.read_csv(station_year_file)
+                        df_existing['time'] = pd.to_datetime(df_existing['time'])
+                        combined = pd.concat([df_existing, station_year_data])
+                        combined = combined.drop_duplicates(subset=['time'], keep='last')
+                        combined = combined.sort_values(by='time')
+                        combined.to_csv(station_year_file, index=False)
+            except:
+                failed.append(station["id"])
         else:
             failed.append(station["id"])
 
