@@ -41,7 +41,7 @@ def mistral_meteodata(data_folder, user, password):
     token = response.json()
 
     current_date = datetime.now()
-    last_update = current_date - timedelta(weeks=2)
+    last_update = current_date - timedelta(weeks=6)
     url = "https://meteohub.mistralportal.it/api/observations?q=reftime:%20%3E={}%2000:00,%3C={}%2023:59;license:CCBY_COMPLIANT;timerange:254,0,0&allStationProducts=true&networks={}&latmin={}&lonmin={}&latmax={}&lonmax={}"
 
     for station in stations:

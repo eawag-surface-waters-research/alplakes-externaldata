@@ -6,6 +6,7 @@ from bafu import hydrodata
 from arso import arso_meteodata
 from geosphere import geosphere_meteodata
 from mistral import mistral_meteodata
+from thredds import thredds_meteodata
 
 
 def main(params):
@@ -24,6 +25,8 @@ def main(params):
         geosphere_meteodata(params["filesystem"])
     elif params["source"] == "mistral_meteodata":
         mistral_meteodata(params["filesystem"], params["user"], params["password"])
+    elif params["source"] == "thredds_meteodata":
+        thredds_meteodata(params["filesystem"])
     else:
         raise Exception("Currently only the following sources are supported: {}".format(setups))
 
