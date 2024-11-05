@@ -31,8 +31,7 @@ def thredds_meteodata(data_folder):
         os.makedirs(parent)
 
     current_date = datetime.now()
-    #last_update = current_date - timedelta(weeks=4)
-    last_update = datetime(2004, 1, 2, 15, 30)
+    last_update = current_date - timedelta(weeks=4)
 
     url = "https://thredds-su.ipsl.fr/thredds/fileServer/aeris_thredds/actrisfr_data/665029c8-82b8-4754-9ff4-d558e640b0ba/{}/{}_MTO_1H_{}.nc"
 
