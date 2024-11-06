@@ -17,8 +17,8 @@ def thredds_meteodata(data_folder):
     https://thredds-su.ipsl.fr/thredds/catalog/aeris_thredds/actrisfr_data/665029c8-82b8-4754-9ff4-d558e640b0ba/catalog.html
     """
     stations = [
-        {"id": "73329001_CHAMBERY-AIX", "parameters": ["time","ta","rh","wd","ws","cumul_precip","glo"]},
-        {"id": "74182001_MEYTHET", "parameters": ["time","ta","rh","wd","ws","cumul_precip"]},
+        {"id": "73329001", "name": "CHAMBERY-AIX", "parameters": ["time","ta","rh","wd","ws","cumul_precip","glo"]},
+        {"id": "74182001", "name": "MEYTHET", "parameters": ["time","ta","rh","wd","ws","cumul_precip"]},
     ]
     failed = []
 
@@ -33,13 +33,13 @@ def thredds_meteodata(data_folder):
     current_date = datetime.now()
     last_update = current_date - timedelta(weeks=4)
 
-    url = "https://thredds-su.ipsl.fr/thredds/fileServer/aeris_thredds/actrisfr_data/665029c8-82b8-4754-9ff4-d558e640b0ba/{}/{}_MTO_1H_{}.nc"
+    url = "https://thredds-su.ipsl.fr/thredds/fileServer/aeris_thredds/actrisfr_data/665029c8-82b8-4754-9ff4-d558e640b0ba/{}/{}_{}_MTO_1H_{}.nc"
 
     for station in stations:
         log.info("Downloading data for station {}".format(station["id"]))
         for year in range(last_update.year, current_date.year + 1):
             with tempfile.NamedTemporaryFile(suffix=".nc", delete=False) as temp_file:
-                response = requests.get(url.format(year, station["id"], year), stream=True)
+                response = requests.get(url.format(year, station["id"], station["name"], year), stream=True)
                 if response.status_code == 200:
                     for chunk in response.iter_content(chunk_size=8192):
                         temp_file.write(chunk)
