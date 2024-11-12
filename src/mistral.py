@@ -16,7 +16,8 @@ def mistral_meteodata(data_folder, user, password):
     """
     stations = [
         {"id": "trn196", "parameters": ['B14198', 'B12101', 'B13003', 'B11001', 'B11002'], "lat": 46.06192, "lng": 11.12041, "network": "mnw"},
-        {"id": "vnt387", "parameters": ['B14198', 'B12101', 'B13003', 'B11001', 'B11002'], "lat": 45.64268, "lng": 10.73399, "network": "mnw"}
+        {"id": "vnt387", "parameters": ['B14198', 'B12101', 'B13003', 'B11001', 'B11002'], "lat": 45.64268, "lng": 10.73399, "network": "mnw"},
+        {"id": "tignale_oldesio", "parameters": ['time', 'B11002', 'B12101', 'B13011', 'B11001', 'B14198', 'B13003'], "lat": 45.73262, "lng": 10.72092, "network": "dpcn-lombardia"}
     ]
     failed = []
 
