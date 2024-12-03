@@ -9,7 +9,7 @@ import logging
 import traceback
 import pandas as pd
 from datetime import datetime, timedelta
-
+from dateutil.relativedelta import relativedelta
 
 def list_nested_dir(root):
     f = []
@@ -52,6 +52,40 @@ def unzip_combine(path):
             raise ValueError("Failed to unzip and combine {}".format(path))
     else:
         raise ValueError("Path is not a zip file: {}".format(path))
+
+
+def split_date_range(start_date, end_date, period, unit='days'):
+    """
+    Splits a date range into chunks of a given period.
+
+    :param start_date: Start of the range (datetime object)
+    :param end_date: End of the range (datetime object)
+    :param period: Length of each chunk
+    :param unit: Unit of the period ('days', 'months', 'years')
+    :return: List of tuples (chunk_start, chunk_end)
+    """
+    chunks = []
+    current_start = start_date
+
+    while current_start < end_date:
+        # Determine the next period's start date based on the unit
+        if unit == 'days':
+            next_period_start = current_start + timedelta(days=period)
+        elif unit == 'months':
+            next_period_start = current_start + relativedelta(months=period)
+        elif unit == 'years':
+            next_period_start = current_start + relativedelta(years=period)
+        else:
+            raise ValueError("Invalid unit. Use 'days', 'months', or 'years'.")
+
+        # Ensure the end of the chunk does not exceed the overall end_date
+        chunk_end = min(next_period_start, end_date)
+        chunks.append((current_start, chunk_end))
+
+        # Update the current start for the next chunk
+        current_start = chunk_end
+
+    return chunks
 
 
 class logger(object):
