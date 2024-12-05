@@ -1,6 +1,7 @@
 import os
 import re
 import sys
+import glob
 import math
 import shutil
 import xarray
@@ -40,7 +41,13 @@ def unzip_combine(path):
         try:
             with zipfile.ZipFile(path, 'r') as zip_ref:
                 zip_ref.extractall(temp_folder)
-            ds = xarray.open_mfdataset(temp_folder+'/*.nc', combine='by_coords')
+
+            nc_files = sorted(glob.glob(os.path.join(temp_folder, '*.nc')))
+            if not nc_files:
+                raise ValueError(f"No NetCDF files found in {temp_folder}")
+
+            datasets = (xarray.open_dataset(f) for f in nc_files)
+            ds = xarray.concat(datasets, dim='time')
             ds.to_netcdf(path.replace(".zip", ".nc"))
             ds.close()
             shutil.rmtree(temp_folder)

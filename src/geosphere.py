@@ -12,6 +12,13 @@ def geosphere_meteodata(data_folder):
     """
     Download Meteodata from Geosphere
     https://dataset.api.hub.geosphere.at/v1/docs/#
+
+    Add new stations
+    1. Find closest station https://alplakes-eawag.s3.eu-central-1.amazonaws.com/static/geosphere/geosphere_stations.json
+    2. Add station to stations list
+    3. Edit last_updated to an old date
+    4. Upload data to API
+    5. Edit FastAPI list of stations
     """
     stations = [
         {"id": "6512", "parameters": ["cglo", "dd", "p", "rf", "rr", "tl", "ffam"], "start": "2010-05-27T00:00"},
