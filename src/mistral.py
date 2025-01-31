@@ -17,7 +17,12 @@ def mistral_meteodata(data_folder, user, password):
     stations = [
         {"id": "trn196", "parameters": ['B14198', 'B12101', 'B13003', 'B11001', 'B11002'], "lat": 46.06192, "lng": 11.12041, "network": "mnw"},
         {"id": "vnt387", "parameters": ['B14198', 'B12101', 'B13003', 'B11001', 'B11002'], "lat": 45.64268, "lng": 10.73399, "network": "mnw"},
-        {"id": "tignale_oldesio", "parameters": ['time', 'B11002', 'B12101', 'B13011', 'B11001', 'B14198', 'B13003'], "lat": 45.73262, "lng": 10.72092, "network": "dpcn-lombardia"}
+        {"id": "tignale_oldesio", "parameters": ['B11002', 'B12101', 'B13011', 'B11001', 'B14198', 'B13003'], "lat": 45.73262, "lng": 10.72092, "network": "dpcn-lombardia"},
+        {"id": "Tavernola Bergamasca Gallinarga", "parameters": ['B12101', 'B13003', 'B11001', 'B11002', 'B13011'], "lat": 45.69633, "lng": 10.05422, "network": "dpcn-lombardia"},
+        {"id": "Costa Volpino v.Nazionale", "parameters": ['B14198', 'B12101', 'B13003', 'B11001', 'B11002', 'B13011'], "lat": 45.82716, "lng": 10.09706, "network": "dpcn-lombardia"},
+        {"id": "lmb341", "parameters": ['B14198', 'B12101', 'B13003', 'B11001', 'B11002'], "lat": 45.60308, "lng": 9.8966, "network": "mnw"},
+        {"id": "Dervio v.S.Cecilia", "parameters": ['B12101', 'B13003', 'B11001', 'B11002', 'B13011'], "lat": 46.06896, "lng": 9.30539, "network": "dpcn-lombardia"},
+        {"id": "Porlezza torrente", "parameters": ['B14198', 'B12101', 'B13003', 'B11001', 'B11002', 'B13011'], "lat": 46.03777, "lng": 9.1408, "network": "dpcn-lombardia"}
     ]
     failed = []
 
@@ -69,8 +74,11 @@ def mistral_meteodata(data_folder, user, password):
                         dfs.append(df)
                 df = reduce(merge_dfs, dfs)
                 df = df.sort_values(by='time').reset_index(drop=True)
+                for p in station["parameters"]:
+                    if p not in df.columns:
+                        df[p] = None
                 for year in range(df['time'].min().year, df['time'].max().year + 1):
-                    station_year_file = os.path.join(parent, station["id"], "{}.csv".format(year))
+                    station_year_file = os.path.join(parent, station["id"].lower().replace(" ", "_").replace(".", "_"), "{}.csv".format(year))
                     station_year_data = df[df['time'].dt.year == year]
                     if not os.path.exists(station_year_file):
                         log.info("Saving file new file {}.".format(station_year_file), indent=1)
@@ -89,6 +97,7 @@ def mistral_meteodata(data_folder, user, password):
         else:
             print(response)
             failed.append(station["id"])
+
     requests.get("https://meteohub.mistralportal.it/auth/logout", headers={
         'accept': 'application/json',
         'Authorization': f'Bearer {token}'

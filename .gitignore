@@ -7,3 +7,5 @@ logs/*
 !logs/.gitkeep
 creds.json
 filesystem
+notebooks/data
+notebooks/.ipynb_checkpoints
