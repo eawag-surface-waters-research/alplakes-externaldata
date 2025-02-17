@@ -12,28 +12,25 @@ def csv_process(path, folder):
     parts = os.path.basename(path).split(".")[0].split("_")
     out_folder = os.path.join(os.path.dirname(folder), "stations", parts[1], parts[2])
     os.makedirs(out_folder, exist_ok=True)
-    files = os.listdir(out_folder)
-    files = [os.path.join(out_folder, f) for f in files if f.endswith(".csv")]
 
     df = pd.read_csv(path)
     df['Time'] = pd.to_datetime(df['Time'])
     df['Time'] = df['Time'].dt.tz_convert('UTC')
 
-    if len(files) > 0:
-        files.sort()
-        df_old = pd.read_csv(files[-1])
-        df_old['Time'] = pd.to_datetime(df_old['Time'])
-        df = pd.concat([df, df_old], ignore_index=True)
-
-    df = df.drop_duplicates(subset='Time', keep='last').reset_index(drop=True)
-    df['Year'] = df['Time'].dt.year
-    df = df.sort_values(by='Time').reset_index(drop=True)
-    dfg = df.groupby('Year')
-    for year, group_df in dfg:
-        file_name = os.path.basename(path).split(".")[0] + "_{}.csv".format(year)
-        output_file_path = os.path.join(out_folder, file_name)
-        group_df = group_df.drop('Year', axis=1)
-        group_df.to_csv(output_file_path, index=False)
+    for year in range(df['Time'].min().year, df['Time'].max().year + 1):
+        year_file = os.path.join(out_folder, os.path.basename(path).split(".")[0] + "_{}.csv".format(year))
+        year_data = df[df['Time'].dt.year == year]
+        if not os.path.exists(year_file):
+            print("Saving file new file {}.".format(year_file))
+            os.makedirs(os.path.dirname(year_file), exist_ok=True)
+            year_data.to_csv(year_file, index=False)
+        else:
+            df_existing = pd.read_csv(year_file)
+            df_existing['Time'] = pd.to_datetime(df_existing['Time'])
+            combined = pd.concat([df_existing, year_data])
+            combined = combined.drop_duplicates(subset=['Time'], keep='last')
+            combined = combined.sort_values(by='Time')
+            combined.to_csv(year_file, index=False)
 
 
 def totalinflowlakes_process(path, folder):
