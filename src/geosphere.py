@@ -20,6 +20,7 @@ def geosphere_meteodata(data_folder):
     4. Upload data to API
     5. Edit FastAPI list of stations
     """
+
     stations = [
         {"id": "6512", "parameters": ["cglo", "dd", "p", "rf", "rr", "tl", "ffam"], "start": "2010-05-27T00:00"},
         {"id": "4821", "parameters": ["cglo", "dd", "p", "rf", "rr", "tl", "ffam"], "start": "2008-09-25T00:00"},
@@ -31,7 +32,12 @@ def geosphere_meteodata(data_folder):
         {"id": "6621", "parameters": ["cglo", "dd", "p", "rf", "rr", "tl", "ffam"], "start": "2014-11-24T00:00"},
         {"id": "20220", "parameters": ["cglo", "dd", "p", "rf", "rr", "tl", "ffam"], "start": "1996-12-10T00:00"},
         {"id": "12311", "parameters": ["cglo", "dd", "p", "rf", "rr", "tl", "ffam"], "start": "1992-08-29T00:00"},
-        {"id": "20212", "parameters": ["cglo", "dd", "p", "rf", "rr", "tl", "ffam"], "start": "1996-09-01T00:00"}
+        {"id": "20212", "parameters": ["cglo", "dd", "p", "rf", "rr", "tl", "ffam"], "start": "1996-09-01T00:00"},
+        {"id": "11505", "parameters": ["cglo", "dd", "p", "rf", "rr", "tl", "ffam"], "start": "1994-12-06T00:00"},
+        {"id": "4515", "parameters": ["cglo", "dd", "p", "rf", "rr", "tl", "ffam"], "start": "2008-06-25T00:00"},
+        {"id": "9406", "parameters": ["cglo", "dd", "p", "rf", "rr", "tl", "ffam"], "start": "2008-09-30T00:00"},
+        {"id": "9016", "parameters": ["cglo", "dd", "p", "rf", "rr", "tl", "ffam"], "start": "1994-05-25T00:00"},
+        {"id": "8806", "parameters": ["cglo", "dd", "p", "rf", "rr", "tl", "ffam"], "start": "2016-10-05T00:00"}
     ]
     failed = []
 
