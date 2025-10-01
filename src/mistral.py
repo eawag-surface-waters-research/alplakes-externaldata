@@ -35,7 +35,7 @@ def mistral_meteodata(data_folder, user, password):
         os.makedirs(parent)
 
     log.info("Collecting authentication token.")
-    response = requests.post("https://meteohub.mistralportal.it/auth/login", json={
+    response = requests.post("https://meteohub.agenziaitaliameteo.it/auth/login", json={
         'username': user,
         'password': password
     }, headers={
@@ -48,12 +48,12 @@ def mistral_meteodata(data_folder, user, password):
 
     current_date = datetime.now()
     last_update = current_date - timedelta(weeks=1)
-    url = "https://meteohub.mistralportal.it/api/observations?q=reftime:%20%3E={}%2000:00,%3C={}%2023:59;license:CCBY_COMPLIANT;timerange:254,0,0&allStationProducts=true&networks={}&latmin={}&lonmin={}&latmax={}&lonmax={}"
+    url = "https://meteohub.agenziaitaliameteo.it/api/observations?q=reftime:%20%3E={}%2000:00,%3C={}%2023:59;license:CCBY_COMPLIANT;timerange:254,0,0;product:{}&allStationProducts=false&networks={}&lat={}&lon={}"
 
     for station in stations:
         log.info("Downloading data for station {}".format(station["id"]))
-        u = url.format(last_update.strftime("%Y-%m-%d"), current_date.strftime("%Y-%m-%d"), station["network"],
-                       station["lat"] - 0.001, station["lng"] - 0.001, station["lat"] + 0.001, station["lng"] + 0.001)
+        u = url.format(last_update.strftime("%Y-%m-%d"), current_date.strftime("%Y-%m-%d"), "%20or%20".join(station["parameters"]), station["network"],
+                       station["lat"], station["lng"])
         response = requests.get(u, headers={
             'accept': 'application/json',
             'Authorization': f'Bearer {token}'
@@ -98,7 +98,7 @@ def mistral_meteodata(data_folder, user, password):
             print(response)
             failed.append(station["id"])
 
-    requests.get("https://meteohub.mistralportal.it/auth/logout", headers={
+    requests.get("https://meteohub.agenziaitaliameteo.it/auth/logout", headers={
         'accept': 'application/json',
         'Authorization': f'Bearer {token}'
     })
