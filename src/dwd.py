@@ -60,6 +60,8 @@ def dwd_meteodata(data_folder):
         {"id": "856", "parameters": ["wind","precipitation","global_radiation","air_temperature"]},
         {"id": "2573", "parameters": ["wind"]},
         {"id": "19856", "parameters": ["wind", "precipitation", "air_temperature"]},
+        {"id": "4642", "parameters": ["wind", "precipitation", "global_radiation", "air_temperature"]},
+        {"id": "591", "parameters": ["wind", "precipitation", "global_radiation", "air_temperature"]},
     ]
     failed = []
 
@@ -136,6 +138,8 @@ def dwd_meteodata(data_folder):
             df = data[station["parameters"][0]]
             for key in station["parameters"][1:]:
                 df = pd.merge(df, data[key], on='time', how='outer')
+
+            df = df.drop_duplicates()
 
             for year in range(df['time'].min().year, df['time'].max().year + 1):
                 station_year_file = os.path.join(parent, station["id"], "{}.csv".format(year))
