@@ -54,11 +54,17 @@ def mistral_meteodata(data_folder, user, password):
         log.info("Downloading data for station {}".format(station["id"]))
         u = url.format(last_update.strftime("%Y-%m-%d"), current_date.strftime("%Y-%m-%d"), "%20or%20".join(station["parameters"]), station["network"],
                        station["lat"], station["lng"])
-        response = requests.get(u, headers={
-            'accept': 'application/json',
-            'Authorization': f'Bearer {token}'
-        })
-        if response.status_code == 200:
+        for i in range(5):
+            try:
+                response = requests.get(u, headers={
+                    'accept': 'application/json',
+                    'Authorization': f'Bearer {token}'
+                })
+                break
+            except Exception as e:
+                print("Failed to access data. Sleeping 20s")
+                time.sleep(20)
+        if response.status_code == 200 and i != 4:
             try:
                 data = response.json()["data"][0]["prod"]
                 dfs = []
@@ -97,6 +103,7 @@ def mistral_meteodata(data_folder, user, password):
         else:
             print(response)
             failed.append(station["id"])
+
 
     requests.get("https://meteohub.agenziaitaliameteo.it/auth/logout", headers={
         'accept': 'application/json',
