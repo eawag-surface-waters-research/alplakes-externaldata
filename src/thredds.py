@@ -55,6 +55,7 @@ def thredds_meteodata(data_folder):
                 df = pd.DataFrame(data)
                 df['time'] = pd.to_datetime(df['time'], unit='s', utc=True)
                 df = df.sort_values(by='time')
+                df = df[df['time'].dt.year == year]
                 station_year_file = os.path.join(parent, station["id"], "{}.csv".format(year))
                 if not os.path.exists(station_year_file):
                     log.info("Saving file new file {}.".format(station_year_file), indent=1)
