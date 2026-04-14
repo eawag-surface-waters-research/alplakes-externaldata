@@ -200,7 +200,7 @@ def meteodata(data_folder, ftp_password, folder="data", ftp_host="sftp.eawag.ch"
                             combined = pd.concat([df_existing, station_year_data])
                             combined = combined.drop_duplicates(subset=['Date'])
                             combined = combined.sort_values(by='Date')
-                            combined.fillna('-', inplace=True)
+                            combined = combined.fillna('-')
                             combined.to_csv(station_year_file, index=False)
                 if os.path.exists(temp_file):
                     os.unlink(temp_file)

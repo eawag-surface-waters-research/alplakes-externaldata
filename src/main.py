@@ -9,9 +9,6 @@ from mistral import mistral_meteodata
 from thredds import thredds_meteodata
 from dwd import dwd_meteodata
 
-
-
-
 def main(params):
     setups = ["meteoswiss_cosmo", "bafu_hydrodata", "meteoswiss_meteodata", "meteoswiss_icon", "arso_meteodata", "dwd_meteodata"]
     if params["source"] == "meteoswiss_cosmo":
@@ -37,8 +34,6 @@ def main(params):
 
 
 if __name__ == "__main__":
-    if sys.version_info[0:2] != (3, 9):
-        raise Exception('Requires python 3.9')
     parser = argparse.ArgumentParser()
     parser.add_argument('--source', '-s', help="Data source [meteoswiss_cosmo, bafu_hydrodata, meteoswiss_meteodata, meteoswiss_icon]", type=str)
     parser.add_argument('--filesystem', '-f', help="Path to local storage filesystem", type=str,)

@@ -51,7 +51,7 @@ def thredds_meteodata(data_folder):
                 data = {}
                 with netCDF4.Dataset(temp_file.name) as nc:
                     for parameter in station["parameters"]:
-                        data[parameter] = nc.variables[parameter][:]
+                        data[parameter] = np.ma.filled(nc.variables[parameter][:].astype(float), np.nan)
                 df = pd.DataFrame(data)
                 df['time'] = pd.to_datetime(df['time'], unit='s', utc=True)
                 df = df.sort_values(by='time')
@@ -68,7 +68,8 @@ def thredds_meteodata(data_folder):
                     combined = combined.drop_duplicates(subset=['time'], keep='last')
                     combined = combined.sort_values(by='time')
                     combined.to_csv(station_year_file, index=False)
-            except:
+            except Exception as e:
+                print(e)
                 failed.append("{} ({})".format(station["id"], year))
     if len(failed) > 0:
         raise ValueError("Failed to download and process: {}".format(", ".join(failed)))

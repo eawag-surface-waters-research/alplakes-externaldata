@@ -51,7 +51,7 @@ def totalinflowlakes_process(path, folder):
             skiprows += 1
             if "dd mm yyyy hh" in str(line):
                 break
-    df = pd.read_csv(path, skiprows=skiprows, delim_whitespace=True)
+    df = pd.read_csv(path, skiprows=skiprows, sep=r'\s+')
     df.index = pd.to_datetime(dict(year=df.yyyy, month=df.mm, day=df.dd, hour=df.hh))
     days = df.groupby([df.index.date]).sum(numeric_only=True).index
     start = "{}T00:00:00"
