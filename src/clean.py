@@ -31,8 +31,6 @@ def is_old_file(file, days):
 
 
 if __name__ == "__main__":
-    if sys.version_info[0:2] != (3, 9):
-        raise Exception('Requires python 3.9')
     parser = argparse.ArgumentParser()
     parser.add_argument('--hostname', '-s', help="Server hostname", type=str)
     parser.add_argument('--username', '-u', help="Server username", type=str)
