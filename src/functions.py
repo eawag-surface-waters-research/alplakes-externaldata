@@ -47,7 +47,9 @@ def unzip_combine(path):
                 raise ValueError(f"No NetCDF files found in {temp_folder}")
 
             datasets = [xarray.open_dataset(f) for f in nc_files]
-            ds = xarray.concat(datasets, dim='time')
+            ds = xarray.concat(datasets, dim='time', data_vars='all').load()
+            for d in datasets:
+                d.close()
             ds.to_netcdf(path.replace(".zip", ".nc"))
             ds.close()
             shutil.rmtree(temp_folder)
