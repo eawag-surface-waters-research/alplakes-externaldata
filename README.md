@@ -34,6 +34,12 @@ python src/main.py -s bafu_hydrodata -f {{ filesystem path }} -k {{ ssh_key path
 ```console
 python src/main.py -s meteoswiss_cosmo -f {{ filesystem path }} -p {{ ftp password }}
 ```
+#### Download MeteoSwiss ICON-CH2-EPS members
+Downloads today's 00 UTC run from the MeteoSwiss open data, which is published at around 03:30 UTC and available for 24 hours.
+Runs older than 2 days are deleted.
+```console
+python src/main.py -s meteoswiss_icon_members -f {{ filesystem path }}
+```
 
 
 

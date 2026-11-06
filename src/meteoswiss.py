@@ -1,8 +1,12 @@
 import os
+import shutil
 import pysftp
 import fnmatch
 import pandas as pd
-from functions import logger, unzip_combine, progressbar
+from datetime import datetime, timezone
+from functions import (logger, unzip_combine, progressbar, create_stac_session, stac_time, list_stac_forecast,
+                       download_stac_asset, read_icon_grid, download_stac_forecast, process_icon_members,
+                       delete_old_runs)
 
 
 def cosmo(data_folder, ftp_password, ftp_host="sftp.eawag.ch", ftp_port=22, ftp_user="cosmo", progress=False):
@@ -139,6 +143,73 @@ def icon(data_folder, ftp_password, ftp_host="sftp.eawag.ch", ftp_port=22, ftp_u
 
     if len(failed) > 0:
         raise ValueError("Failed to download: {}".format(", ".join(failed)))
+
+
+def icon_members(data_folder, retention_days=2, workers=8):
+    """
+    Download the 00 UTC ICON-CH2-EPS run from the MeteoSwiss open data STAC API and store every member as netCDF.
+    https://opendatadocs.meteoswiss.ch/e-forecast-data/e2-e3-numerical-weather-forecasting-model
+    Available for 24 hours after publication, which is typically 3.5 hours after the run starts.
+    Output on the native grid: %Y_%m_%d_00_icon-ch2-eps_members.nc (forecast): ICON-CH2-EPS 5 day ensemble forecast
+    """
+    stac_url = "https://data.geo.admin.ch/api/stac/v1"
+    collection = "ch.meteoschweiz.ogd-forecasting-icon-ch2"
+    constants = "horizontal_constants_icon-ch2-eps.grib2"
+    variables = ["T_2M", "TD_2M", "U_10M", "V_10M", "ASWDIR_S", "ASWDIFD_S", "CLCT", "TOT_PREC"]
+    # GRIB typeOfStatisticalProcessing of the variables that are not instantaneous: 0 is average, 1 is accumulation
+    statistics = {"ASWDIR_S": 0, "ASWDIFD_S": 0, "TOT_PREC": 1}
+    leads = list(range(121))
+    members = list(range(21))  # 0 is the control, 1 to 20 are perturbed
+    # Names, units and long names follow the existing ICON products
+    outputs = {"T_2M": {"units": "K", "long_name": "Temperature at 2m above ground"},
+               "RELHUM_2M": {"units": "%", "long_name": "2m relative humidity (with respect to water)"},
+               "TOT_PREC": {"units": "kg m-2", "long_name": "Total precipitation"},
+               "U": {"units": "m s-1", "long_name": "Zonal wind", "vector_basis": "geographic"},
+               "V": {"units": "m s-1", "long_name": "Meridional wind", "vector_basis": "geographic"},
+               "CLCT": {"units": "%", "long_name": "Total cloud cover"},
+               "GLOB": {"units": "W m-2", "long_name": "Downward shortwave radiation flux at surface"}}
+
+    log = logger("icon_members", path=os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir, "logs"))
+    log.initialise("Download ICON-CH2-EPS members from the MeteoSwiss open data STAC API")
+
+    log.info("Ensure data folder exists.")
+    parent = os.path.join(data_folder, "meteoswiss/icon/icon-ch2-eps-members")
+    if not os.path.exists(parent):
+        os.makedirs(parent)
+
+    now = datetime.now(timezone.utc)
+    ref_time = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    output = os.path.join(parent, "{}_00_icon-ch2-eps_members.nc".format(ref_time.strftime("%Y_%m_%d")))
+    grib_folder = output + ".tmp"
+
+    try:
+        if os.path.isfile(output):
+            log.info("File {} already downloaded, skipping.".format(os.path.basename(output)))
+        else:
+            if os.path.exists(grib_folder):
+                shutil.rmtree(grib_folder)
+            session = create_stac_session(workers)
+
+            log.info("Finding the run from {}".format(stac_time(ref_time)))
+            items = list_stac_forecast(session, stac_url, collection, ref_time, variables, leads)
+
+            log.info("Downloading the grid")
+            download_stac_asset(session, stac_url, collection, constants, os.path.join(grib_folder, constants))
+            grid, lat, lon = read_icon_grid(os.path.join(grib_folder, constants))
+
+            log.info("Downloading {} files".format(len(items)))
+            download_stac_forecast(session, stac_url, collection, ref_time, items, grib_folder, workers, log)
+
+            log.info("Processing to {}".format(os.path.basename(output)))
+            source = "model: icon-ch2-eps, generating_process: ensemble_forecast, product_category: eps_member"
+            history = "Derived from MeteoSwiss open data collection {} on {}".format(collection, stac_time(now))
+            process_icon_members(grib_folder, ref_time, output, grid, lat, lon, leads, members, statistics, outputs,
+                                 source, history, log)
+    finally:
+        if os.path.exists(grib_folder):
+            shutil.rmtree(grib_folder)
+        delete_old_runs(parent, r"^(\d{4}_\d{2}_\d{2})_00_icon-ch2-eps_members\.nc(\.part|\.tmp)?$", now,
+                        retention_days, log)
 
 
 def meteodata(data_folder, ftp_password, folder="data", ftp_host="sftp.eawag.ch", ftp_port=22, ftp_user="simstrat"):

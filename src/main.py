@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import sys
 import argparse
-from meteoswiss import cosmo, icon, meteodata
+from meteoswiss import cosmo, icon, icon_members, meteodata
 from bafu import hydrodata
 from arso import arso_meteodata
 from geosphere import geosphere_meteodata
@@ -10,11 +10,13 @@ from thredds import thredds_meteodata
 from dwd import dwd_meteodata
 
 def main(params):
-    setups = ["meteoswiss_cosmo", "bafu_hydrodata", "meteoswiss_meteodata", "meteoswiss_icon", "arso_meteodata", "dwd_meteodata"]
+    setups = ["meteoswiss_cosmo", "bafu_hydrodata", "meteoswiss_meteodata", "meteoswiss_icon", "meteoswiss_icon_members", "arso_meteodata", "dwd_meteodata"]
     if params["source"] == "meteoswiss_cosmo":
         cosmo(params["filesystem"], params["password"])
     elif params["source"] == "meteoswiss_icon":
         icon(params["filesystem"], params["password"])
+    elif params["source"] == "meteoswiss_icon_members":
+        icon_members(params["filesystem"])
     elif params["source"] == "meteoswiss_meteodata":
         meteodata(params["filesystem"], params["password"])
     elif params["source"] == "bafu_hydrodata":
@@ -35,7 +37,7 @@ def main(params):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--source', '-s', help="Data source [meteoswiss_cosmo, bafu_hydrodata, meteoswiss_meteodata, meteoswiss_icon]", type=str)
+    parser.add_argument('--source', '-s', help="Data source [meteoswiss_cosmo, bafu_hydrodata, meteoswiss_meteodata, meteoswiss_icon, meteoswiss_icon_members]", type=str)
     parser.add_argument('--filesystem', '-f', help="Path to local storage filesystem", type=str,)
     parser.add_argument('--user', '-u', help="Username", type=str, default=False)
     parser.add_argument('--password', '-p', help="Password", type=str, default=False)
