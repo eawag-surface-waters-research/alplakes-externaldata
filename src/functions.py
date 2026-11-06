@@ -494,35 +494,46 @@ def create_icon_members_netcdf(path, ref_time, lat, lon, leads, members, outputs
 
     for name, attributes in outputs.items():
         variable = dataset.createVariable(name, "f4", ("time", "epsd_1", "cell"), zlib=True,
-                                          fill_value=np.finfo("f4").min, chunksizes=(1, len(members), len(lat)))
+                                          fill_value=np.finfo("f4").min,
+                                          # A point read decompresses every chunk it touches, so a chunk holds all the lead times and members of a few cells
+                                          chunksizes=(len(leads), len(members), min(128, len(lat))))
         variable.setncatts(attributes)
         variable.coordinates = "lon_1 lat_1"
     return dataset
 
 
+def icon_members_field(name, read, previous, lead):
+    """Returns (field, value to pass as previous at the next lead time) for an output, from the GRIB variables it is derived from."""
+    if name == "RELHUM_2M":
+        return relative_humidity(read["T_2M"], read["TD_2M"]), None
+    if name == "GLOB":
+        radiation = read["ASWDIR_S"] + read["ASWDIFD_S"]
+        # As in the existing products, these describe the hour ending at the lead, so have no value at +0 h
+        return np.full(radiation.shape, np.nan) if lead == 0 else hourly_mean(radiation, previous, lead), radiation
+    if name == "TOT_PREC":
+        precipitation = read["TOT_PREC"]
+        return np.full(precipitation.shape, np.nan) if lead == 0 else hourly_total(precipitation, previous), precipitation
+    return next(iter(read.values())), None
+
+
 def process_icon_members(folder, ref_time, output, grid, lat, lon, leads, members, statistics, outputs, source, history, log):
-    """Writes the product one lead time at a time, renaming it only once every message has passed the checks."""
+    """Writes the product one variable at a time, as a chunk spans every lead time, renaming it only once every message has passed the checks."""
+    sources = {"T_2M": ["T_2M"], "U": ["U_10M"], "V": ["V_10M"], "CLCT": ["CLCT"], "PMSL": ["PMSL"], "RELHUM_2M": ["T_2M", "TD_2M"],
+               "GLOB": ["ASWDIR_S", "ASWDIFD_S"], "TOT_PREC": ["TOT_PREC"]}
     fill_value = np.finfo("f4").min
     part = output + ".part"
     dataset = create_icon_members_netcdf(part, ref_time, lat, lon, leads, members, outputs, source, history)
     try:
-        previous_radiation, previous_precipitation = None, None
-        for index, lead in enumerate(leads):
-            read = {v: read_icon_members(folder, v, lead, ref_time, grid, len(lat), statistics.get(v), members)
-                    for v in ["T_2M", "TD_2M", "U_10M", "V_10M", "ASWDIR_S", "ASWDIFD_S", "CLCT", "TOT_PREC"]}
-            radiation = read["ASWDIR_S"] + read["ASWDIFD_S"]
-            precipitation = read["TOT_PREC"]
-            missing = np.full(radiation.shape, np.nan)
-            fields = {"T_2M": read["T_2M"], "U": read["U_10M"], "V": read["V_10M"], "CLCT": read["CLCT"],
-                      "RELHUM_2M": relative_humidity(read["T_2M"], read["TD_2M"]),
-                      # As in the existing products, these describe the hour ending at the lead, so have no value at +0 h
-                      "GLOB": missing if lead == 0 else hourly_mean(radiation, previous_radiation, lead),
-                      "TOT_PREC": missing if lead == 0 else hourly_total(precipitation, previous_precipitation)}
-            for name, values in fields.items():
-                dataset[name][index] = np.where(np.isnan(values), fill_value, values).astype("f4")
-            previous_radiation, previous_precipitation = radiation, precipitation
-            if lead % 24 == 0:
-                log.info("Processed up to +{} h".format(lead), indent=1)
+        values = np.empty((len(leads), len(members), len(lat)), dtype="f4")
+        for name in outputs:
+            previous = None
+            for index, lead in enumerate(leads):
+                read = {v: read_icon_members(folder, v, lead, ref_time, grid, len(lat), statistics.get(v), members)
+                        for v in sources[name]}
+                field, previous = icon_members_field(name, read, previous, lead)
+                values[index] = np.where(np.isnan(field), fill_value, field).astype("f4")
+            dataset[name][:] = values
+            log.info("Processed {}".format(name), indent=1)
     except Exception:
         dataset.close()
         os.remove(part)

@@ -155,7 +155,7 @@ def icon_members(data_folder, retention_days=2, workers=8):
     stac_url = "https://data.geo.admin.ch/api/stac/v1"
     collection = "ch.meteoschweiz.ogd-forecasting-icon-ch2"
     constants = "horizontal_constants_icon-ch2-eps.grib2"
-    variables = ["T_2M", "TD_2M", "U_10M", "V_10M", "ASWDIR_S", "ASWDIFD_S", "CLCT", "TOT_PREC"]
+    variables = ["T_2M", "TD_2M", "U_10M", "V_10M", "ASWDIR_S", "ASWDIFD_S", "CLCT", "TOT_PREC", "PMSL"]
     # GRIB typeOfStatisticalProcessing of the variables that are not instantaneous: 0 is average, 1 is accumulation
     statistics = {"ASWDIR_S": 0, "ASWDIFD_S": 0, "TOT_PREC": 1}
     leads = list(range(121))
@@ -166,6 +166,7 @@ def icon_members(data_folder, retention_days=2, workers=8):
                "TOT_PREC": {"units": "kg m-2", "long_name": "Total precipitation"},
                "U": {"units": "m s-1", "long_name": "Zonal wind", "vector_basis": "geographic"},
                "V": {"units": "m s-1", "long_name": "Meridional wind", "vector_basis": "geographic"},
+               "PMSL": {"units": "Pa", "long_name": "Surface pressure reduced to msl"},
                "CLCT": {"units": "%", "long_name": "Total cloud cover"},
                "GLOB": {"units": "W m-2", "long_name": "Downward shortwave radiation flux at surface"}}
 
